@@ -1,6 +1,14 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+
+public enum PlayerState
+{
+    Normal,
+    Pickup,
+}
+
+
 public class PlayerController : MonoBehaviour
 {
 
@@ -23,6 +31,8 @@ public class PlayerController : MonoBehaviour
 
     private float verticalVeolcity;
 
+    private PlayerState currentState = PlayerState.Normal;
+
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
@@ -40,6 +50,40 @@ public class PlayerController : MonoBehaviour
         {
             return;
         }
+
+        if (currentState != PlayerState.Normal) return;
+        {
+            HandleMovement (keyboard);
+        }
+    }
+
+    private void ApplyGravity()
+    {
+        if (controller.isGrounded && verticalVeolcity < 0f)
+        {
+            verticalVeolcity = -2f;
+        }
+        else
+        {
+            verticalVeolcity += gravity * Time.deltaTime;
+        }
+
+        controller.Move(Vector3.up * verticalVeolcity * Time.deltaTime);
+    }
+
+    public void ChangeState(PlayerState newstate)
+    {
+        currentState = newstate;
+
+        if (currentState != PlayerState.Normal)
+        {
+            animator.SetFloat("speed", 0);
+        }
+
+        Debug.Log("현재 상태 : " + currentState);
+    }
+    private void HandleMovement(Keyboard keyboard)
+    {
         Vector2 input = Vector2.zero;
 
         if (keyboard.aKey.isPressed)
@@ -59,7 +103,7 @@ public class PlayerController : MonoBehaviour
         Vector3 cameraForward = cameraTransform.forward;
         Vector3 cameraRight = cameraTransform.right;
 
-        cameraForward.y = 0;   
+        cameraForward.y = 0;
         cameraRight.y = 0;
 
         cameraForward.Normalize();
@@ -71,32 +115,23 @@ public class PlayerController : MonoBehaviour
         bool isRunning = keyboard.leftShiftKey.isPressed;
         float currentSpeed = isRunning ? runSpeed : walkSpeed;
 
-        controller.Move(moveDirection *  currentSpeed * Time.deltaTime); 
+        controller.Move(moveDirection * currentSpeed * Time.deltaTime);
 
-        if(moveDirection.sqrMagnitude > 0.001f)
+        if (moveDirection.sqrMagnitude > 0.001f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotaitionSpeed * Time.deltaTime);
         }
 
-        if(controller.isGrounded && verticalVeolcity < 0f)
-        {
-            verticalVeolcity = -2f;
-        }
-        else
-        {
-            verticalVeolcity += gravity * Time.deltaTime;
-        }
-
-        controller.Move(Vector3.up * verticalVeolcity * Time.deltaTime);
-
         float animationSpeed = 0f;
 
-        if(moveDirection.sqrMagnitude > 0.001f)
+        if (moveDirection.sqrMagnitude > 0.001f)
         {
             animationSpeed = isRunning ? 1f : 0.5f;
         }
 
         animator.SetFloat("speed", animationSpeed, 0.1f, Time.deltaTime);
     }
+
+
 }
