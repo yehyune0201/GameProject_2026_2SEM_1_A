@@ -7,8 +7,8 @@ public class PlayerPickup : MonoBehaviour
     [Header("직접 연결")]
 
     [SerializeField] private Animator animator;
-
     [SerializeField] private PlayerController playerController;
+    [SerializeField] private InteractionUI interactionUI;
 
     [Header("아이템 탐색")]
 
@@ -20,9 +20,12 @@ public class PlayerPickup : MonoBehaviour
     [SerializeField] private float pickupMoment = 0.55f;
 
     private PickupItem targetItem;
+
+    private Door targetDoor;
+
+    private NPC targetNPC;
+
     private bool isPickingUp;
-
-
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -37,16 +40,36 @@ public class PlayerPickup : MonoBehaviour
         if (isPickingUp) return;
 
         targetItem = FindClosestItem();
+        targetDoor = FindClosestDoor();
+        targetNPC = FindClosestNPC();
 
-        if (targetItem == null) return;
+        ShowGuide();
 
         Keyboard keyboard = Keyboard.current;
 
         if (keyboard == null) return;
 
+        if (targetItem == null && targetDoor == null  && targetNPC == null) return;
+
         if (keyboard.eKey.wasPressedThisFrame)
         {
+            Interact();
+        }
+    }
+
+    private void Interact()
+    {
+        if (targetItem != null)
+        {
             StartCoroutine(PickupAnimation());
+        }
+        else if (targetDoor != null)
+        {
+            targetDoor.Interact();
+        }
+        else if (targetNPC != null)
+        {
+            interactionUI.ShowDialouge(targetNPC.GetNPCName(), targetNPC.GetMessage());
         }
     }
 
@@ -77,6 +100,8 @@ public class PlayerPickup : MonoBehaviour
     {
         isPickingUp = true;
 
+        interactionUI.HideGuide();
+
         PickupItem itemToCollect = targetItem;
 
         Vector3 itemDircection = itemToCollect.transform.position - transform.position;
@@ -105,9 +130,83 @@ public class PlayerPickup : MonoBehaviour
         playerController.ChangeState(PlayerState.Normal);
 
         targetItem = null;
+        targetDoor = null;
+        targetNPC = null;
         isPickingUp = false;
 
     }
 
+    private Door FindClosestDoor()
+    {
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius, ~0, QueryTriggerInteraction.Collide);
+        Door closestDoor = null;
+        float closestDistans = Mathf.Infinity;
+
+        foreach(Collider targetCollider in colliders)
+        {
+            Door door = targetCollider.GetComponentInParent<Door>();
+
+            if (door == null) continue;
+
+            float distans = Vector3.Distance(transform.position, door.transform.position);
+
+            if (distans < closestDistans)
+            {
+                closestDistans = distans;
+                closestDoor = door;
+            }
+            
+        }
+        return closestDoor;
+    }
+
+
+
+    private NPC FindClosestNPC()
+    {
+        Collider[] colliders = Physics.OverlapSphere(transform.position, detectionRadius, ~0, QueryTriggerInteraction.Collide);
+        NPC closestNPC = null;
+        float closestDistans = Mathf.Infinity;
+
+        foreach (Collider targetCollider in colliders)
+        {
+            NPC npc = targetCollider.GetComponentInParent<NPC>();
+
+            if (npc == null) continue;
+
+            float distans = Vector3.Distance(transform.position, npc.transform.position);
+
+            if (distans < closestDistans)
+            {
+                closestDistans = distans;
+                closestNPC = npc;
+            }
+        }
+        return closestNPC;
+    }
+
+    private void ShowGuide()
+    {
+        if (targetItem != null)
+        {
+            interactionUI.ShowGuide(" [E] " +  targetItem.GetItemName() + "줍기");
+        }
+        else if(targetDoor != null)
+        {
+            interactionUI.ShowGuide(targetDoor.GetGuideText());
+        }
+        else if(targetNPC != null)
+        {
+            interactionUI.ShowGuide(targetNPC.GetGuideText());
+        }
+        else
+        {
+            interactionUI. HideGuide();
+        }
+    }
+
+
 
 }
+
+
