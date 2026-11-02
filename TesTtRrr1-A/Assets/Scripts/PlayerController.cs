@@ -6,6 +6,7 @@ public enum PlayerState
 {
     Normal,
     Pickup,
+    inventory
 }
 
 
@@ -82,6 +83,13 @@ public class PlayerController : MonoBehaviour
 
         Debug.Log("현재 상태 : " + currentState);
     }
+
+    public bool IsNomalState()
+    {
+        return currentState == PlayerState.Normal;
+    }
+
+
     private void HandleMovement(Keyboard keyboard)
     {
         Vector2 input = Vector2.zero;

@@ -21,10 +21,12 @@ public class PickupItem : MonoBehaviour
 
     private Vector3 startPosition;
 
+    private SimpleInventory inventory;
 
     public void Awake()
     {
         questManager = FindFirstObjectByType<QuestManager>();
+        inventory = FindFirstObjectByType<SimpleInventory>();
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -42,17 +44,27 @@ public class PickupItem : MonoBehaviour
         transform.position = startPosition + Vector3.up * y;
     }
 
-    public void Collect()
-    {
-        Debug.Log(itemName + "" +  amount + "°³ È¹µæ"); 
-        questManager.AddQuestItem(itemName, amount);
-        Destroy(gameObject);
-    }
-
     public string GetItemName()
     {
         return itemName; 
     }
 
-
+    public void Collect()
+    {
+        if(inventory == null)
+        {
+            Debug.Log("SimpleInventory¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+            return;
+        }
+        if (inventory.AddItem(itemName, amount) == false )
+        {
+            return;
+        }
+        Debug.Log(itemName + " " +  amount + "°³ È¹µæ");
+        if(questManager != null)
+        {
+            questManager.AddQuestItem(itemName, amount);
+        }
+        Destroy(gameObject);
+    }
 }
