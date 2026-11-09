@@ -6,6 +6,12 @@ public class QuestManager : MonoBehaviour
 
     private Quest currentQuest;
 
+    private SimpleInventory inventory;
+
+    private void Awake()
+    {
+        inventory = FindFirstObjectByType<SimpleInventory>();
+    }
 
     private void Start()
     {
@@ -73,8 +79,18 @@ public class QuestManager : MonoBehaviour
     void StartQuest(Quest newQuest)
     {
         currentQuest = newQuest;
-        currentQuest.currrentAmount = 0;
-        currentQuest.state = QuestState.InProgress;
+        currentQuest.currrentAmount = inventory.GetItemAmount(currentQuest.targetItemName);
+        //currentQuest.state = QuestState.InProgress;
+
+        if (currentQuest.currrentAmount >= currentQuest.targetAmount)
+        {
+            currentQuest.currrentAmount = currentQuest.targetAmount;
+            currentQuest.state = QuestState.ReadyToComplete;
+        }
+        else
+        {
+            currentQuest.state = QuestState.InProgress;
+        }
 
         Debug.Log(currentQuest.questName + "퀘스트 시작");
         UpdateQuestText();
@@ -99,13 +115,15 @@ public class QuestManager : MonoBehaviour
 
     public void CompleteQuest()
     {
+        if(inventory.RemoveItem(currentQuest.targetItemName , currentQuest.targetAmount) == false)
+        {
+            Debug.Log("퀘스트 아이템이 부족합니다");
+            return;
+        }
+
         currentQuest.state = QuestState.Completed;
         Debug.Log(currentQuest.questName + "퀘스트 완료!");
         UpdateQuestText();
     }
-
-
-
-
 
 }

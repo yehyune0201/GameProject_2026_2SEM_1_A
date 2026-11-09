@@ -11,11 +11,15 @@ public class PickupItem : MonoBehaviour
 
     [SerializeField] QuestManager questManager;
 
+    [TextArea]
+
+    [SerializeField] private string description = "아이템 설명이 없습니다.";
+
     [Header("화면 연습")]
 
     [SerializeField] private float rotationSpeed = 60f;
 
-    [SerializeField] private float floatingHeight = 0.15f;
+    [SerializeField] private float floatingHeight = 0.15f; 
 
     [SerializeField] private float floatingSpeed = 2f;
 
@@ -56,7 +60,7 @@ public class PickupItem : MonoBehaviour
             Debug.Log("SimpleInventory를 찾을 수 없습니다.");
             return;
         }
-        if (inventory.AddItem(itemName, amount) == false )
+        if (inventory.AddItem(itemName, amount, description) == false )
         {
             return;
         }

@@ -6,4 +6,6 @@ public class InventoryItem
 
     public int amount;
 
+    public string description;
+
 }
